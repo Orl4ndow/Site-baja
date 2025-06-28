@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Gestão - Projeto Baja SAE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .nav-link { transition: background-color 0.2s, color 0.2s; }
+        .nav-link.active { background-color: #4f46e5; color: white; }
+        .page { display: none; animation: fadeIn 0.5s; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .loader { border: 4px solid #e5e7eb; border-top: 4px solid #4f46e5; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+    </style>
+</head>
+<body class="h-screen flex bg-gray-100">
+
+    <div id="loading-overlay" class="fixed inset-0 bg-white/90 backdrop-blur-sm flex justify-center items-center z-50">
+        <div class="text-center">
+            <div class="loader mx-auto"></div>
+            <p class="mt-4 text-gray-600 font-semibold">A carregar dashboard...</p>
+        </div>
+    </div>
+
+    <nav class="w-64 bg-white shadow-lg flex-col hidden md:flex">
+        <div class="p-6 text-center border-b">
+            <h1 class="text-xl font-bold text-indigo-600">Quarter Mile BAJA UERJ</h1>
+            <p class="text-sm text-gray-500">Painel de Gestão</p>
+        </div>
+        <ul class="flex-grow p-4 space-y-2">
+            <li><a href="#dashboard" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-100 active"><i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>Dashboard</a></li>
+            <li><a href="#escopo" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-100"><i data-lucide="file-text" class="w-5 h-5 mr-3"></i>Escopo</a></li>
+            <li><a href="#eap" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-100"><i data-lucide="network" class="w-5 h-5 mr-3"></i>EAP</a></li>
+            <li><a href="#cronograma" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-100"><i data-lucide="calendar-days" class="w-5 h-5 mr-3"></i>Cronograma</a></li>
+            <li><a href="#riscos" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-100"><i data-lucide="shield-alert" class="w-5 h-5 mr-3"></i>Riscos</a></li>
+            <li><a href="#reunioes" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-100"><i data-lucide="users" class="w-5 h-5 mr-3"></i>Reuniões</a></li>
+            <li><a href="#links" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-100"><i data-lucide="link" class="w-5 h-5 mr-3"></i>Links Úteis</a></li>
+            <li><a href="#avisos" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-100"><i data-lucide="megaphone" class="w-5 h-5 mr-3"></i>Avisos</a></li>
+        </ul>
+        <div class="p-4 border-t space-y-2">
+            <a href="#edicao" class="nav-link w-full flex items-center justify-center text-sm p-2 rounded bg-green-100 hover:bg-green-200 text-green-800 font-semibold"><i data-lucide="settings" class="w-4 h-4 mr-2"></i>Editar Projeto</a>
+        </div>
+    </nav>
+
+    <main class="flex-1 p-4 md:p-8 overflow-y-auto">
+        <div id="dashboard" class="page active">
+            <h2 class="text-3xl font-bold mb-6">Dashboard</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-semibold mb-2">Próximos Prazos</h3><div id="dashboard-prazos" class="text-gray-700 space-y-1"></div></div>
+                <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-semibold mb-2">Riscos Críticos</h3><div id="dashboard-riscos" class="text-gray-700 space-y-1"></div></div>
+                <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-semibold mb-2">Última Reunião</h3><div id="dashboard-reuniao" class="text-gray-700 space-y-1"></div></div>
+            </div>
+             <div class="mt-8 bg-white p-6 rounded-lg shadow">
+                 <h3 class="text-xl font-semibold mb-2 flex items-center"><i data-lucide="megaphone" class="w-5 h-5 mr-2"></i>Quadro de Avisos</h3>
+                 <div id="avisos-dashboard-content" class="text-gray-700 space-y-2"></div>
+             </div>
+        </div>
+        <div id="escopo" class="page"><h2 class="text-3xl font-bold mb-6">Termo de Abertura e Escopo</h2><div class="bg-white p-6 rounded-lg shadow"><p id="escopo-view" class="whitespace-pre-wrap text-gray-700"></p></div></div>
+        <div id="eap" class="page"><h2 class="text-3xl font-bold mb-6">EAP - Estrutura Analítica do Projeto</h2><div class="bg-white p-6 rounded-lg shadow"><div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr><th class="px-6 py-3">Código</th><th class="px-6 py-3">Descrição</th></tr></thead><tbody id="eap-table-view"></tbody></table></div></div></div>
+        <div id="cronograma" class="page"><h2 class="text-3xl font-bold mb-6">Lista de Tarefas do Cronograma</h2><div class="bg-white p-6 rounded-lg shadow"><div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr><th class="px-6 py-3">Tarefa (ID)</th><th class="px-6 py-3">Responsável</th><th class="px-6 py-3">Início</th><th class="px-6 py-3">Fim</th></tr></thead><tbody id="cronograma-table-view"></tbody></table></div></div></div>
+        <div id="riscos" class="page"><h2 class="text-3xl font-bold mb-6">Matriz de Riscos</h2><div class="bg-white p-6 rounded-lg shadow"><div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr><th class="px-6 py-3">Risco</th><th class="px-6 py-3">Probabilidade</th><th class="px-6 py-3">Impacto</th><th class="px-6 py-3">Mitigação</th></tr></thead><tbody id="riscos-table-view"></tbody></table></div></div></div>
+        <div id="reunioes" class="page"><h2 class="text-3xl font-bold mb-6">Atas de Reunião</h2><div class="bg-white p-6 rounded-lg shadow"><div id="reunioes-list-view" class="space-y-4"></div></div></div>
+        <div id="links" class="page"><h2 class="text-3xl font-bold mb-6">Links Úteis</h2><div class="bg-white p-6 rounded-lg shadow"><div id="links-list-view" class="space-y-2"></div></div></div>
+        <div id="avisos" class="page"><h2 class="text-3xl font-bold mb-6">Quadro de Avisos</h2><div class="bg-white p-6 rounded-lg shadow"><div id="avisos-list-view" class="space-y-4"></div></div></div>
+        
+        <div id="edicao" class="page space-y-8">
+            <div class="flex justify-between items-center">
+                 <h2 class="text-3xl font-bold">Modo de Edição</h2>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-semibold mb-4">Escopo</h3><textarea id="escopo-text-edit" class="w-full h-60 p-2 border rounded" placeholder="Descreva aqui o escopo..."></textarea><button id="salvar-escopo-edit" class="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Guardar Escopo</button></div>
+            <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-semibold mb-4">Avisos</h3><form id="aviso-form-edit" class="mt-4 flex gap-4"><input type="text" id="aviso-texto-edit" placeholder="Escreva um novo aviso..." class="p-2 border rounded w-full" required><button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Publicar</button></form><div id="avisos-list-edit" class="text-gray-700 space-y-2 mt-4"></div></div>
+            <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-semibold mb-4">EAP</h3><form id="eap-form" class="mb-4 grid grid-cols-1 md:grid-cols-4 gap-4"><input type="text" id="eap-codigo" placeholder="Código (ex: 1.1)" class="p-2 border rounded" required><input type="text" id="eap-descricao" placeholder="Descrição da Tarefa" class="p-2 border rounded col-span-2" required><button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Adicionar Tarefa</button></form><div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr><th class="px-6 py-3">Código</th><th class="px-6 py-3">Descrição</th><th class="px-6 py-3">Ação</th></tr></thead><tbody id="eap-table-edit"></tbody></table></div></div>
+            <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-semibold mb-4">Cronograma</h3><form id="cronograma-form" class="mb-4 grid grid-cols-1 md:grid-cols-5 gap-4"><input type="text" id="cronograma-id" placeholder="ID da Tarefa" class="p-2 border rounded" required><input type="text" id="cronograma-responsavel" placeholder="Responsável" class="p-2 border rounded" required><div><label class="text-sm">Início</label><input type="date" id="cronograma-inicio" class="p-2 border rounded w-full" required></div><div><label class="text-sm">Fim</label><input type="date" id="cronograma-fim" class="p-2 border rounded w-full" required></div><button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 self-end">Adicionar Tarefa</button></form><div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr><th>Tarefa (ID)</th><th>Responsável</th><th>Início</th><th>Fim</th><th>Ação</th></tr></thead><tbody id="cronograma-table-edit"></tbody></table></div></div>
+            <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-semibold mb-4">Matriz de Riscos</h3><form id="risco-form" class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4"><input type="text" id="risco-descricao" placeholder="Descrição do Risco" class="p-2 border rounded" required><select id="risco-probabilidade" class="p-2 border rounded"><option>Baixa</option><option>Média</option><option>Alta</option></select><select id="risco-impacto" class="p-2 border rounded"><option>Baixo</option><option>Médio</option><option>Alto</option></select><textarea id="risco-mitigacao" placeholder="Plano de Mitigação" class="p-2 border rounded col-span-3 h-20"></textarea><button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 col-span-3">Adicionar Risco</button></form><div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr><th>Risco</th><th>Probabilidade</th><th>Impacto</th><th>Mitigação</th><th>Ação</th></tr></thead><tbody id="riscos-table-edit"></tbody></table></div></div>
+            <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-semibold mb-4">Atas de Reunião</h3><form id="reuniao-form" class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4"><input type="date" id="reuniao-data" class="p-2 border rounded" required><input type="text" id="reuniao-participantes" placeholder="Participantes" class="p-2 border rounded" required><textarea id="reuniao-pauta" placeholder="Pauta e Resultados da Reunião" class="p-2 border rounded col-span-3 h-40"></textarea><button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 col-span-3">Adicionar Ata</button></form><div id="reunioes-list-edit" class="space-y-4"></div></div>
+            <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-semibold mb-4">Links Úteis</h3><form id="link-form" class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4"><input type="url" id="link-url" placeholder="URL do Link" class="p-2 border rounded col-span-2" required><input type="text" id="link-descricao" placeholder="Descrição do Link" class="p-2 border rounded" required><button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 col-span-3">Adicionar Link</button></form><div id="links-list-edit" class="space-y-2"></div></div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            
+            try {
+                // --- INÍCIO: Configuração do Firebase ---
+                const firebaseConfig = {
+                    apiKey: "AIzaSyDSt6t_gQCW94cXoQKarPcbqOJkXppWzZc",
+                    authDomain: "baja-eletronica.firebaseapp.com",
+                    projectId: "baja-eletronica",
+                    storageBucket: "baja-eletronica.firebasestorage.app",
+                    messagingSenderId: "770422250340",
+                    appId: "1:770422250340:web:40dd3f5d8166854f8bf871"
+                };
+
+                // Inicializar o Firebase
+                firebase.initializeApp(firebaseConfig);
+                const db = firebase.firestore();
+                const projectDocRef = db.collection("projects").doc("mainProject");
+                // --- FIM: Configuração do Firebase ---
+
+
+                // --- Armazenamento de Dados ---
+                const defaultData = {
+                    scope: "Este é o espaço para o termo de abertura e escopo do seu projeto Baja SAE. Descreva a justificativa, objetivos, entregáveis, critérios de aceitação, premissas e restrições.",
+                    eap: [{id: 1, codigo: "1", descricao: "Projeto Baja SAE"}, {id: 2, codigo: "1.1", descricao: "Sistema de Suspensão"}],
+                    cronograma: [{id: 1, taskId: "1.1", responsavel: "Equipa de Suspensão", inicio: "2025-01-01", fim: "2025-01-31"}],
+                    riscos: [{id: 1, descricao: "Atraso na entrega de peças", probabilidade: "Média", impacto: "Alto", mitigacao: "Manter contacto semanal com fornecedores."}],
+                    reunioes: [{id: 1, data: "2025-01-01", participantes: "Toda a equipa", pauta: "Reunião de Kick-off do projeto."}],
+                    links: [{id: 1, url: "http://www.saebrasil.org.br", descricao: "Site Oficial SAE Brasil"}],
+                    avisos: [{id: 1, texto: "Bem-vindos ao novo painel de gestão!", createdAt: new Date().toISOString()}]
+                };
+
+                let dataStore = {};
+
+                async function loadData() {
+                    const doc = await projectDocRef.get();
+                    if (doc.exists) {
+                        const firestoreData = doc.data();
+                        // Garante que todos os campos existam no dataStore
+                        Object.keys(defaultData).forEach(key => {
+                           dataStore[key] = firestoreData[key] !== undefined ? firestoreData[key] : defaultData[key];
+                        });
+                    } else {
+                        // Se não existe, usa os dados padrão e salva no Firestore
+                        console.log("Nenhum projeto encontrado. A criar novo projeto com dados padrão.");
+                        dataStore = JSON.parse(JSON.stringify(defaultData));
+                        await saveData();
+                    }
+                }
+
+                async function saveData() {
+                    try {
+                        await projectDocRef.set(dataStore);
+                    } catch (error) {
+                        console.error("Erro ao guardar dados no Firestore: ", error);
+                        alert("Ocorreu um erro ao guardar os dados. Verifique a consola para mais detalhes.");
+                    }
+                }
+                
+                // --- Funções de Renderização ---
+                function renderAll() {
+                    renderDashboard();
+                    renderEscopoView();
+                    renderEAPView();
+                    renderCronogramaView();
+                    renderRiscosView();
+                    renderReunioesView();
+                    renderLinksView();
+                    renderAvisosView();
+
+                    renderEscopoEdit();
+                    renderEAPEdit();
+                    renderCronogramaEdit();
+                    renderRiscosEdit();
+                    renderReunioesEdit();
+                    renderLinksEdit();
+                    renderAvisosEdit();
+                }
+
+                // --- Navegação ---
+                const navLinks = document.querySelectorAll('.nav-link');
+                const pages = document.querySelectorAll('.page');
+                function navigateTo(hash) {
+                    const targetHash = hash || '#dashboard';
+                    navLinks.forEach(link => link.classList.toggle('active', link.getAttribute('href') === targetHash));
+                    pages.forEach(page => page.classList.toggle('active', '#' + page.id === targetHash));
+                }
+                navLinks.forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        window.location.hash = e.currentTarget.getAttribute('href');
+                    });
+                });
+                window.addEventListener('hashchange', () => navigateTo(window.location.hash));
+                
+                // --- Delete Genérico ---
+                 window.deleteItem = async (sectionName, id) => {
+                    if (confirm('Tem a certeza que quer apagar este item?')) {
+                        dataStore[sectionName] = dataStore[sectionName].filter(item => item.id !== id);
+                        await saveData();
+                        renderAll();
+                    }
+                };
+
+                // --- Lógica das Secções ---
+
+                // Escopo
+                function renderEscopoView() { document.getElementById('escopo-view').innerHTML = dataStore.scope.replace(/\n/g, '<br>') || ''; }
+                function renderEscopoEdit() { document.getElementById('escopo-text-edit').value = dataStore.scope || ''; }
+                document.getElementById('salvar-escopo-edit').addEventListener('click', async () => {
+                    dataStore.scope = document.getElementById('escopo-text-edit').value;
+                    await saveData();
+                    alert("Escopo guardado com sucesso!");
+                    renderEscopoView();
+                });
+
+                // EAP
+                function renderEAPView() {
+                    dataStore.eap.sort((a,b) => a.codigo.localeCompare(b.codigo, undefined, {numeric: true}));
+                    document.getElementById('eap-table-view').innerHTML = dataStore.eap.map(item => `<tr><td class="px-6 py-4">${item.codigo}</td><td class="px-6 py-4">${item.descricao}</td></tr>`).join('');
+                }
+                function renderEAPEdit() {
+                    dataStore.eap.sort((a,b) => a.codigo.localeCompare(b.codigo, undefined, {numeric: true}));
+                    document.getElementById('eap-table-edit').innerHTML = dataStore.eap.map(item => `<tr><td class="px-6 py-4">${item.codigo}</td><td class="px-6 py-4">${item.descricao}</td><td class="px-6 py-4"><button onclick="deleteItem('eap', ${item.id})" class="text-red-500 hover:text-red-700">Apagar</button></td></tr>`).join('');
+                }
+                document.getElementById('eap-form').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    dataStore.eap.push({id: Date.now(), codigo: document.getElementById('eap-codigo').value, descricao: document.getElementById('eap-descricao').value});
+                    await saveData(); renderEAPEdit(); e.target.reset();
+                });
+
+                // Cronograma
+                function renderCronogramaView() {
+                     const tasks = dataStore.cronograma || [];
+                    if (!tasks || tasks.length === 0) { document.getElementById('cronograma-table-view').innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500">Nenhuma tarefa.</td></tr>`; return; }
+                    tasks.sort((a,b) => new Date(a.inicio) - new Date(b.inicio));
+                    document.getElementById('cronograma-table-view').innerHTML = tasks.map(task => `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4">${task.taskId}</td><td class="px-6 py-4">${task.responsavel}</td>
+                            <td class="px-6 py-4">${new Date(task.inicio + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
+                            <td class="px-6 py-4">${new Date(task.fim + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
+                        </tr>`).join('');
+                }
+                function renderCronogramaEdit() {
+                    const tasks = dataStore.cronograma || [];
+                    if (!tasks || tasks.length === 0) { document.getElementById('cronograma-table-edit').innerHTML = `<tr><td colspan="5" class="text-center py-4 text-gray-500">Nenhuma tarefa.</td></tr>`; return; }
+                    tasks.sort((a,b) => new Date(a.inicio) - new Date(b.inicio));
+                    document.getElementById('cronograma-table-edit').innerHTML = tasks.map(task => `
+                        <tr><td class="px-6 py-4">${task.taskId}</td><td class="px-6 py-4">${task.responsavel}</td>
+                            <td class="px-6 py-4">${new Date(task.inicio + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
+                            <td class="px-6 py-4">${new Date(task.fim + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
+                            <td class="px-6 py-4"><button onclick="deleteItem('cronograma', ${task.id})" class="text-red-500">Apagar</button></td>
+                        </tr>`).join('');
+                }
+                document.getElementById('cronograma-form').addEventListener('submit', async e => {
+                    e.preventDefault();
+                    dataStore.cronograma.push({id: Date.now(), taskId: document.getElementById('cronograma-id').value, responsavel: document.getElementById('cronograma-responsavel').value, inicio: document.getElementById('cronograma-inicio').value, fim: document.getElementById('cronograma-fim').value});
+                    await saveData(); renderCronogramaEdit(); e.target.reset(); renderDashboard();
+                });
+                
+                // Riscos
+                function renderRiscosView() { document.getElementById('riscos-table-view').innerHTML = (dataStore.riscos || []).map(i=>`<tr><td class="px-6 py-4">${i.descricao}</td><td>${i.probabilidade}</td><td>${i.impacto}</td><td>${i.mitigacao}</td></tr>`).join(''); }
+                function renderRiscosEdit() { document.getElementById('riscos-table-edit').innerHTML = (dataStore.riscos || []).map(i=>`<tr><td class="px-6 py-4">${i.descricao}</td><td>${i.probabilidade}</td><td>${i.impacto}</td><td>${i.mitigacao}</td><td><button onclick="deleteItem('riscos', ${i.id})" class="text-red-500">Apagar</button></td></tr>`).join(''); }
+                document.getElementById('risco-form').addEventListener('submit', async e => {
+                    e.preventDefault();
+                    dataStore.riscos.push({id: Date.now(), descricao: document.getElementById('risco-descricao').value, probabilidade: document.getElementById('risco-probabilidade').value, impacto: document.getElementById('risco-impacto').value, mitigacao: document.getElementById('risco-mitigacao').value});
+                    await saveData(); renderRiscosEdit(); e.target.reset(); renderDashboard();
+                });
+
+                // Reuniões
+                function renderReunioesView() { document.getElementById('reunioes-list-view').innerHTML = [...(dataStore.reunioes || [])].sort((a,b)=>new Date(b.data)-new Date(a.data)).map(i=>`<div class="bg-gray-50 p-4 rounded-lg"><h4 class="font-bold">${new Date(i.data+'T00:00:00').toLocaleDateString('pt-BR')}</h4><p class="text-sm"><strong>Participantes:</strong> ${i.participantes}</p><p class="text-sm mt-2 whitespace-pre-wrap">${i.pauta}</p></div>`).join(''); }
+                function renderReunioesEdit() { document.getElementById('reunioes-list-edit').innerHTML = [...(dataStore.reunioes || [])].sort((a,b)=>new Date(b.data)-new Date(a.data)).map(i=>`<div class="bg-gray-50 p-4 rounded-lg relative"><button onclick="deleteItem('reunioes', ${i.id})" class="absolute top-2 right-2 text-red-500 text-xs">Apagar</button><h4 class="font-bold">${new Date(i.data+'T00:00:00').toLocaleDateString('pt-BR')}</h4><p class="text-sm"><strong>Participantes:</strong> ${i.participantes}</p><p class="text-sm mt-2 whitespace-pre-wrap">${i.pauta}</p></div>`).join(''); }
+                document.getElementById('reuniao-form').addEventListener('submit', async e => {
+                    e.preventDefault();
+                    dataStore.reunioes.push({id: Date.now(), data: document.getElementById('reuniao-data').value, participantes: document.getElementById('reuniao-participantes').value, pauta: document.getElementById('reuniao-pauta').value});
+                    await saveData(); renderReunioesEdit(); e.target.reset(); renderDashboard();
+                });
+
+                // Links
+                function renderLinksView() { document.getElementById('links-list-view').innerHTML = (dataStore.links || []).map(i=>`<div class="bg-gray-50 p-2 rounded"><a href="${i.url}" target="_blank" class="text-indigo-600 hover:underline">${i.descricao}</a></div>`).join(''); }
+                function renderLinksEdit() { document.getElementById('links-list-edit').innerHTML = (dataStore.links || []).map(i=>`<div class="flex justify-between items-center bg-gray-50 p-2 rounded"><a href="${i.url}" target="_blank" class="text-indigo-600 hover:underline">${i.descricao}</a><button onclick="deleteItem('links', ${i.id})" class="text-red-500 text-xl">&times;</button></div>`).join(''); }
+                document.getElementById('link-form').addEventListener('submit', async e => {
+                    e.preventDefault();
+                    dataStore.links.push({id: Date.now(), url: document.getElementById('link-url').value, descricao: document.getElementById('link-descricao').value});
+                    await saveData(); renderLinksEdit(); e.target.reset();
+                });
+                
+                // Avisos
+                function renderAvisosView() {
+                    const sortedAvisos = [...(dataStore.avisos || [])].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    const avisosHTML = sortedAvisos.map(i => `<div class="border-b pb-2 mb-2"><p>${i.texto}</p><span class="text-xs text-gray-400">${new Date(i.createdAt).toLocaleString('pt-BR')}</span></div>`).join('');
+                    document.getElementById('avisos-dashboard-content').innerHTML = avisosHTML;
+                    document.getElementById('avisos-list-view').innerHTML = avisosHTML;
+                }
+                 function renderAvisosEdit() {
+                    const sortedAvisos = [...(dataStore.avisos || [])].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    document.getElementById('avisos-list-edit').innerHTML = sortedAvisos.map(i => `<div class="border-b pb-2 mb-2 flex justify-between items-center"><p>${i.texto}</p><div><span class="text-xs text-gray-400">${new Date(i.createdAt).toLocaleString('pt-BR')}</span> <button onclick="deleteItem('avisos', ${i.id})" class="text-red-500 text-xs ml-2">Apagar</button></div></div>`).join('');
+                }
+                document.getElementById('aviso-form-edit').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    dataStore.avisos.push({ id: Date.now(), texto: document.getElementById('aviso-texto-edit').value, createdAt: new Date().toISOString() });
+                    await saveData(); renderAvisosEdit(); e.target.reset();
+                });
+
+                // Dashboard
+                function renderDashboard() {
+                    document.getElementById('dashboard-prazos').innerHTML = (dataStore.cronograma || []).filter(t=>t.fim && new Date(t.fim) >= new Date()).sort((a,b)=>new Date(a.fim) - new Date(b.fim)).slice(0,3).map(t=>`<p>${t.taskId}: <span class="font-semibold">${new Date(t.fim+'T00:00:00').toLocaleDateString('pt-BR')}</span></p>`).join('') || '<p class="text-gray-400">Nenhum prazo futuro.</p>';
+                    document.getElementById('dashboard-riscos').innerHTML = (dataStore.riscos || []).filter(r=>r.probabilidade === 'Alta' && r.impacto === 'Alto').slice(0,3).map(r=>`<p>${r.descricao}</p>`).join('') || '<p class="text-gray-400">Nenhum risco crítico.</p>';
+                    if(dataStore.reunioes && dataStore.reunioes.length > 0) document.getElementById('dashboard-reuniao').innerHTML = `<p>Data: <span class="font-semibold">${new Date([...dataStore.reunioes].sort((a,b)=>new Date(b.data)-new Date(a.data))[0].data+'T00:00:00').toLocaleDateString('pt-BR')}</span></p><p class="truncate">${[...dataStore.reunioes].sort((a,b)=>new Date(b.data)-new Date(a.data))[0].pauta}</p>`;
+                    else document.getElementById('dashboard-reuniao').innerHTML = '<p class="text-gray-400">Nenhuma reunião registada.</p>';
+                }
+                
+                // --- Inicialização ---
+                lucide.createIcons();
+                await loadData(); // Espera os dados serem carregados do Firebase
+                renderAll(); // Renderiza todos os componentes com os dados carregados
+                navigateTo(window.location.hash || '#dashboard');
+                loadingOverlay.style.display = 'none'; // Esconde a tela de carregamento
+
+            } catch (error) {
+                 console.error("Erro ao inicializar o dashboard:", error);
+                loadingOverlay.innerHTML = '<p class="text-red-500 font-semibold">Ocorreu um erro ao carregar o painel. Verifique as credenciais do Firebase e a conexão com a internet.</p>';
+            }
+        });
+    </script>
+</body>
+</html>

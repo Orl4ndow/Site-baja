@@ -48,7 +48,7 @@
             <li><a href="#avisos" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-100"><i data-lucide="megaphone" class="w-5 h-5 mr-3"></i>Avisos</a></li>
         </ul>
         <div class="p-4 border-t space-y-2">
-            <li><a href="#edicao" id="config-link" class="nav-link w-full flex items-center justify-center text-sm p-2 rounded bg-green-100 hover:bg-green-200 text-green-800 font-semibold"><i data-lucide="settings" class="w-4 h-4 mr-2"></i>Configurar</a></li>
+            <li><a href="#edicao" id="config-link" class="nav-link w-full flex items-center justify-center text-sm p-2 rounded bg-green-100 hover:bg-red-200 text-black-800 font-semibold"><i data-lucide="settings" class="w-4 h-4 mr-2"></i></a></li>
         </div>
     </nav>
 
@@ -181,7 +181,7 @@
                         e.preventDefault();
                         // Adiciona a lógica de senha para o link "Configurar"
                         if (e.currentTarget.id === 'config-link') {
-                            const password = prompt("Por favor, insira a senha para acessar a configuração:");
+                            const password = prompt("Senha:");
                             if (password === "123456789") { // Sua senha
                                 window.location.hash = e.currentTarget.getAttribute('href');
                             } else {

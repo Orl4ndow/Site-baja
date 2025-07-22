@@ -34,7 +34,7 @@
 
     <nav class="w-64 bg-white shadow-lg flex-col hidden md:flex">
         <div class="p-6 text-center border-b">
-            <h1 class="text-xl font-bold text-indigo-600">Quarter Mile BAJA UERJ</h1>
+            <h1 class="text-xl font-bold text-indigo-600">Quarter Mile BAJA UERJ Eletrônica</h1>
             <p class="text-sm text-gray-500">Painel de Gestão</p>
         </div>
         <ul class="flex-grow p-4 space-y-2">
@@ -66,7 +66,7 @@
              </div>
         </div>
         <div id="escopo" class="page"><h2 class="text-3xl font-bold mb-6">Termo de Abertura e Escopo</h2><div class="bg-white p-6 rounded-lg shadow"><p id="escopo-view" class="whitespace-pre-wrap text-gray-700"></p></div></div>
-        <div id="eap" class="page"><h2 class="text-3xl font-bold mb-6">EAP - Estrutura Analítica do Projeto</h2><div class="bg-white p-6 rounded-lg shadow"><div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr><th class="px-6 py-3">Código</th><th class="px-6 py-3">Descrição</th></tr></thead><tbody id="eap-table-view"></tbody></table></div></div></div>
+        <div id="eap" class="page"><h2 class="text-3xl font-bold mb-6">EAP - Estrutura Analítica do Projeto</h2><div class="bg-white p-6 rounded-lg shadow"><p id="eap-view" class="whitespace-pre-wrap text-gray-700"></p></div></div>
         <div id="cronograma" class="page"><h2 class="text-3xl font-bold mb-6">Lista de Tarefas do Cronograma</h2><div class="bg-white p-6 rounded-lg shadow"><div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr><th class="px-6 py-3">Tarefa (ID)</th><th class="px-6 py-3">Responsável</th><th class="px-6 py-3">Início</th><th class="px-6 py-3">Fim</th></tr></thead><tbody id="cronograma-table-view"></tbody></table></div></div></div>
         <div id="riscos" class="page"><h2 class="text-3xl font-bold mb-6">Matriz de Riscos</h2><div class="bg-white p-6 rounded-lg shadow"><div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr><th class="px-6 py-3">Risco</th><th class="px-6 py-3">Probabilidade</th><th class="px-6 py-3">Impacto</th><th class="px-6 py-3">Mitigação</th></tr></thead><tbody id="riscos-table-view"></tbody></table></div></div></div>
         <div id="reunioes" class="page"><h2 class="text-3xl font-bold mb-6">Atas de Reunião</h2><div class="bg-white p-6 rounded-lg shadow"><div id="reunioes-list-view" class="space-y-4"></div></div></div>
@@ -79,8 +79,8 @@
             </div>
             
             <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-semibold mb-4">Escopo</h3><textarea id="escopo-text-edit" class="w-full h-60 p-2 border rounded" placeholder="Descreva aqui o escopo..."></textarea><button id="salvar-escopo-edit" class="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Guardar Escopo</button></div>
+            <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-semibold mb-4">EAP</h3><p class="text-sm text-gray-600 mb-2">Formato: Código - Descrição (um por linha).</p><textarea id="eap-text-edit" class="w-full h-60 p-2 border rounded" placeholder="1 - Projeto Geral..."></textarea><button id="salvar-eap-edit" class="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Guardar EAP</button></div>
             <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-semibold mb-4">Avisos</h3><form id="aviso-form-edit" class="mt-4 flex gap-4"><input type="text" id="aviso-texto-edit" placeholder="Escreva um novo aviso..." class="p-2 border rounded w-full" required><button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Publicar</button></form><div id="avisos-list-edit" class="text-gray-700 space-y-2 mt-4"></div></div>
-            <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-semibold mb-4">EAP</h3><form id="eap-form" class="mb-4 grid grid-cols-1 md:grid-cols-4 gap-4"><input type="text" id="eap-codigo" placeholder="Código (ex: 1.1)" class="p-2 border rounded" required><input type="text" id="eap-descricao" placeholder="Descrição da Tarefa" class="p-2 border rounded col-span-2" required><button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Adicionar Tarefa</button></form><div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr><th class="px-6 py-3">Código</th><th class="px-6 py-3">Descrição</th><th class="px-6 py-3">Ação</th></tr></thead><tbody id="eap-table-edit"></tbody></table></div></div>
             <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-semibold mb-4">Cronograma</h3><form id="cronograma-form" class="mb-4 grid grid-cols-1 md:grid-cols-5 gap-4"><input type="text" id="cronograma-id" placeholder="ID da Tarefa" class="p-2 border rounded" required><input type="text" id="cronograma-responsavel" placeholder="Responsável" class="p-2 border rounded" required><div><label class="text-sm">Início</label><input type="date" id="cronograma-inicio" class="p-2 border rounded w-full" required></div><div><label class="text-sm">Fim</label><input type="date" id="cronograma-fim" class="p-2 border rounded w-full" required></div><button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 self-end">Adicionar Tarefa</button></form><div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr><th>Tarefa (ID)</th><th>Responsável</th><th>Início</th><th>Fim</th><th>Ação</th></tr></thead><tbody id="cronograma-table-edit"></tbody></table></div></div>
             <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-semibold mb-4">Matriz de Riscos</h3><form id="risco-form" class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4"><input type="text" id="risco-descricao" placeholder="Descrição do Risco" class="p-2 border rounded" required><select id="risco-probabilidade" class="p-2 border rounded"><option>Baixa</option><option>Média</option><option>Alta</option></select><select id="risco-impacto" class="p-2 border rounded"><option>Baixo</option><option>Médio</option><option>Alto</option></select><textarea id="risco-mitigacao" placeholder="Plano de Mitigação" class="p-2 border rounded col-span-3 h-20"></textarea><button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 col-span-3">Adicionar Risco</button></form><div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr><th>Risco</th><th>Probabilidade</th><th>Impacto</th><th>Mitigação</th><th>Ação</th></tr></thead><tbody id="riscos-table-edit"></tbody></table></div></div>
             <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-semibold mb-4">Atas de Reunião</h3><form id="reuniao-form" class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4"><input type="date" id="reuniao-data" class="p-2 border rounded" required><input type="text" id="reuniao-participantes" placeholder="Participantes" class="p-2 border rounded" required><textarea id="reuniao-pauta" placeholder="Pauta e Resultados da Reunião" class="p-2 border rounded col-span-3 h-40"></textarea><button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 col-span-3">Adicionar Ata</button></form><div id="reunioes-list-edit" class="space-y-4"></div></div>
@@ -179,7 +179,6 @@
                 navLinks.forEach(link => {
                     link.addEventListener('click', (e) => {
                         e.preventDefault();
-                        // Adiciona a lógica de senha para o link "Configurar"
                         if (e.currentTarget.id === 'config-link') {
                             const password = prompt("Senha:");
                             if (password === "123456789") { // Sua senha
@@ -206,7 +205,7 @@
                 // --- Lógica das Secções ---
 
                 // Escopo
-                function renderEscopoView() { document.getElementById('escopo-view').innerHTML = dataStore.scope.replace(/\n/g, '<br>') || ''; }
+                function renderEscopoView() { document.getElementById('escopo-view').innerHTML = (dataStore.scope || '').replace(/\n/g, '<br>'); }
                 function renderEscopoEdit() { document.getElementById('escopo-text-edit').value = dataStore.scope || ''; }
                 document.getElementById('salvar-escopo-edit').addEventListener('click', async () => {
                     dataStore.scope = document.getElementById('escopo-text-edit').value;
@@ -216,18 +215,38 @@
                 });
 
                 // EAP
+                function eapArrayToString(eapArray) {
+                    if (!eapArray) return '';
+                    return eapArray.sort((a,b) => a.codigo.localeCompare(b.codigo, undefined, {numeric: true})).map(item => `${item.codigo} - ${item.descricao}`).join('\n');
+                }
+
                 function renderEAPView() {
-                    dataStore.eap.sort((a,b) => a.codigo.localeCompare(b.codigo, undefined, {numeric: true}));
-                    document.getElementById('eap-table-view').innerHTML = dataStore.eap.map(item => `<tr><td class="px-6 py-4">${item.codigo}</td><td class="px-6 py-4">${item.descricao}</td></tr>`).join('');
+                    const eapString = eapArrayToString(dataStore.eap);
+                    document.getElementById('eap-view').innerHTML = eapString.replace(/\n/g, '<br>');
                 }
+
                 function renderEAPEdit() {
-                    dataStore.eap.sort((a,b) => a.codigo.localeCompare(b.codigo, undefined, {numeric: true}));
-                    document.getElementById('eap-table-edit').innerHTML = dataStore.eap.map(item => `<tr><td class="px-6 py-4">${item.codigo}</td><td class="px-6 py-4">${item.descricao}</td><td class="px-6 py-4"><button onclick="deleteItem('eap', ${item.id})" class="text-red-500 hover:text-red-700">Apagar</button></td></tr>`).join('');
+                    document.getElementById('eap-text-edit').value = eapArrayToString(dataStore.eap);
                 }
-                document.getElementById('eap-form').addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    dataStore.eap.push({id: Date.now(), codigo: document.getElementById('eap-codigo').value, descricao: document.getElementById('eap-descricao').value});
-                    await saveData(); renderEAPEdit(); e.target.reset();
+
+                document.getElementById('salvar-eap-edit').addEventListener('click', async () => {
+                    const text = document.getElementById('eap-text-edit').value;
+                    const lines = text.split('\n').filter(line => line.trim() !== '');
+                    
+                    const newEap = lines.map((line, index) => {
+                        const parts = line.split(' - ');
+                        const codigo = parts.shift()?.trim();
+                        const descricao = parts.join(' - ').trim();
+                        if (codigo && descricao) {
+                            return { id: Date.now() + index, codigo, descricao };
+                        }
+                        return null;
+                    }).filter(Boolean); // Filtra linhas mal formatadas
+
+                    dataStore.eap = newEap;
+                    await saveData();
+                    alert("EAP guardada com sucesso!");
+                    renderEAPView();
                 });
 
                 // Cronograma

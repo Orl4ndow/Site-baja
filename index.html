@@ -58,7 +58,7 @@
 
     <nav id="main-nav" class="w-64 bg-white shadow-lg flex-col flex">
         <div class="p-6 text-center border-b">
-            <h1 class="text-xl font-bold text-indigo-600">Quarter Mile BAJA UERJ</h1>
+            <h1 class="text-xl font-bold text-indigo-600">Quarter Mile BAJA Eletrônica UERJ</h1>
             <p class="text-sm text-gray-500">Painel de Gestão</p>
         </div>
         <ul class="flex-grow p-4 space-y-2">
@@ -72,7 +72,7 @@
             <li><a href="#avisos" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-100"><i data-lucide="megaphone" class="w-5 h-5 mr-3"></i>Avisos</a></li>
         </ul>
         <div class="p-4 border-t">
-            <a href="#edicao" id="config-link" class="nav-link w-full flex items-center justify-center text-sm p-3 rounded bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-semibold"><i data-lucide="settings" class="w-5 h-5 mr-2"></i>Modo Edição</a>
+            <a href="#edicao" id="config-link" class="nav-link w-full flex items-center justify-center text-sm p-3 rounded bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-semibold"><i data-lucide="settings" class="w-5 h-5 mr-2"></i></a>
         </div>
     </nav>
 
@@ -106,7 +106,7 @@
             <div id="avisos" class="page"><h2 class="text-3xl font-bold mb-6">Quadro de Avisos</h2><div class="bg-white p-6 rounded-lg shadow"><div id="avisos-list-view" class="space-y-4"></div></div></div>
             
             <div id="edicao" class="page space-y-8">
-                <h2 class="text-3xl font-bold">Modo de Edição</h2>
+                <h2 class="text-3xl font-bold"></h2>
                 
                 <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-semibold mb-4">Escopo</h3><textarea id="escopo-text-edit" class="w-full h-60 p-2 border rounded" placeholder="Descreva aqui o escopo..."></textarea><button id="salvar-escopo-edit" class="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Guardar Escopo</button></div>
                 <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-semibold mb-4">EAP</h3><textarea id="eap-text-edit" class="w-full h-60 p-2 border rounded font-mono text-sm" placeholder="Digite sua EAP aqui. Use espaços ou tabs para criar a hierarquia."></textarea><button id="salvar-eap-edit" class="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Guardar EAP</button></div>
@@ -228,7 +228,7 @@
                         e.preventDefault();
                         const href = e.currentTarget.getAttribute('href');
                         if (e.currentTarget.id === 'config-link') {
-                            const password = prompt("Para aceder ao modo de edição, por favor, insira a senha:");
+                            const password = prompt("Insira a senha:");
                             if (password === "123456789") { // Sua senha
                                 window.location.hash = href;
                             } else {

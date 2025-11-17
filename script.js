@@ -25,10 +25,27 @@ document.addEventListener('DOMContentLoaded', async () => {
             riscos: [{id: 1, descricao: "Atraso na entrega de peças", probabilidade: "Média", impacto: "Alto", mitigacao: "Manter contato semanal com fornecedores."}],
             reunioes: [{id: 1, data: "2025-07-20", participantes: "Toda a equipe", pauta: "Reunião de Kick-off do projeto."}],
             links: [{id: 1, url: "http://www.saebrasil.org.br", descricao: "Site Oficial SAE Brasil"}],
-            avisos: [{id: 1, texto: "Bem-vindos ao novo painel de gestão!", createdAt: new Date().toISOString()}]
+            avisos: [{id: 1, texto: "Bem-vindos ao novo painel de gestão!", createdAt: new Date().toISOString()}],
+            // NOVO: Dados iniciais para o Kanban (incluindo datas)
+            kanban: [
+                { id: Date.now(), title: "Definir Layout do Dashboard", status: "done", createdAt: new Date().toISOString(), lastMovedAt: new Date().toISOString() },
+                { id: Date.now() + 1, title: "Integrar Firebase Firestore", status: "doing", createdAt: new Date().toISOString(), lastMovedAt: new Date().toISOString() },
+                { id: Date.now() + 2, title: "Criar novo card Kanban", status: "todo", createdAt: new Date().toISOString(), lastMovedAt: new Date().toISOString() }
+            ]
         };
 
         let dataStore = {};
+        
+        // NOVO: Função para formatar data e hora
+        function formatKanbanDate(isoString) {
+            if (!isoString) return 'N/A';
+            const date = new Date(isoString);
+            const options = {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            };
+            return date.toLocaleDateString('pt-BR', options);
+        }
 
         async function loadData() {
             const doc = await projectDocRef.get();
@@ -51,7 +68,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         async function saveData() {
             try {
+                // Remove propriedades que são arrays ou objetos para serializar, se necessário.
+                // Mas neste caso, o Firebase 8.10 lida bem com arrays e objetos aninhados simples.
                 await projectDocRef.set(dataStore);
+                console.log("Dados salvos no Firestore.");
             } catch (error) {
                 console.error("Erro ao guardar dados no Firestore: ", error);
                 alert("Ocorreu um erro ao guardar os dados. Verifique a consola para mais detalhes.");
@@ -60,6 +80,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         function renderAll() {
             renderDashboard();
+            renderKanban(); 
             renderEscopoView();
             renderEAPView();
             renderCronogramaView();
@@ -75,6 +96,156 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderLinksEdit();
             renderAvisosEdit();
         }
+
+        // --- FUNÇÕES KANBAN ---
+        
+        // 1. Renderiza o quadro Kanban a partir do dataStore
+        function renderKanban() {
+            const columns = ['todo', 'doing', 'done']; 
+            
+            columns.forEach(status => {
+                const listElement = document.getElementById(`card-list-${status}`);
+                if (!listElement) return; 
+                
+                // Filtra os cards para a coluna atual
+                const cards = dataStore.kanban.filter(card => card.status === status)
+                                             .sort((a, b) => a.id - b.id); 
+
+                listElement.innerHTML = cards.map(card => `
+                    <div class="kanban-card flex flex-col justify-between items-start" 
+                         draggable="true" 
+                         id="card-${card.id}" 
+                         ondragstart="kanbanDrag(event)">
+                        
+                        <!-- Linha 1: Título e Botão de Exclusão -->
+                        <div class="flex justify-between w-full mb-2">
+                            <span class="card-text font-medium">${card.title}</span>
+                            <span class="delete-card-btn" 
+                                  onclick="event.stopPropagation(); kanbanDeleteCard(${card.id})">
+                                &times;
+                            </span>
+                        </div>
+
+                        <!-- Linha 2: Datas de Criação e Movimentação (NOVO) -->
+                        <div class="text-xs text-gray-500 w-full space-y-0.5">
+                            <p title="Data de Criação"><i data-lucide="plus-circle" class="w-3 h-3 inline mr-1"></i> Criado: ${formatKanbanDate(card.createdAt)}</p>
+                            <p title="Última Movimentação"><i data-lucide="move" class="w-3 h-3 inline mr-1"></i> Movido: ${formatKanbanDate(card.lastMovedAt)}</p>
+                        </div>
+                    </div>
+                `).join('');
+            });
+            
+            // Re-cria os ícones Lucide para os novos elementos injetados
+            lucide.createIcons(); 
+        }
+
+        // 2. Lógica de Drag and Drop (Salva no Firestore no Drop)
+
+        let draggedCardId = null;
+
+        window.kanbanAllowDrop = function(event) {
+            event.preventDefault();
+        }
+
+        window.kanbanDrag = function(event) {
+            // Pega o ID numérico
+            draggedCardId = event.target.id.split('-')[1]; 
+            event.dataTransfer.setData("text/plain", event.target.id);
+            event.target.style.opacity = '0.5'; // Feedback visual
+        }
+
+        window.kanbanDrop = async function(event) {
+            event.preventDefault();
+            
+            const cardIdString = event.dataTransfer.getData("text/plain");
+            const cardElement = document.getElementById(cardIdString);
+            
+            if (cardElement) {
+                cardElement.style.opacity = '1'; // Restaura opacidade
+
+                // Encontra a lista de cards (card-list) dentro da coluna
+                let targetElement = event.target;
+                let targetList = null;
+
+                // Percorre os pais até encontrar a lista de cards ou a coluna
+                while (targetElement) {
+                    if (targetElement.classList && targetElement.classList.contains('card-list')) {
+                        targetList = targetElement; // Encontrou a lista
+                        break;
+                    }
+                    if (targetElement.classList && targetElement.classList.contains('kanban-column-style')) {
+                        // Encontrou a coluna, mas o drop foi na área vazia/título
+                        targetList = targetElement.querySelector('.card-list');
+                        break;
+                    }
+                    targetElement = targetElement.parentElement;
+                }
+                
+                if (!targetList) return; // Se não encontrou o alvo válido, sai.
+
+                // Pega o status da coluna de destino
+                const newStatus = targetList.parentElement.id.replace('column-', '');
+                const cardId = parseInt(draggedCardId);
+                
+                // Move o card (DOM)
+                targetList.appendChild(cardElement);
+
+                // 1. Atualiza o dataStore
+                const cardIndex = dataStore.kanban.findIndex(card => card.id === cardId);
+                if (cardIndex !== -1 && dataStore.kanban[cardIndex].status !== newStatus) {
+                    
+                    dataStore.kanban[cardIndex].status = newStatus;
+                    
+                    // NOVO: Atualiza a data da última movimentação
+                    dataStore.kanban[cardIndex].lastMovedAt = new Date().toISOString(); 
+
+                    // 2. Salva no Firestore
+                    await saveData(); 
+
+                    // 3. Atualiza o DOM (Chamando renderKanban para garantir a ordem correta)
+                    renderKanban(); 
+                }
+            }
+        }
+
+        // 3. Adiciona um novo card
+        window.kanbanRequestCardName = function(columnId) {
+            // Usando prompt() para input rápido
+            const taskName = prompt("Digite o nome da nova tarefa:");
+
+            if (taskName && taskName.trim() !== "") {
+                kanbanAddCard(columnId, taskName.trim());
+            } else if (taskName !== null) {
+                alert("O nome da tarefa não pode ser vazio.");
+            }
+        }
+
+        window.kanbanAddCard = async function(status, title) {
+            const now = new Date().toISOString(); // Captura a data/hora atual no formato ISO
+            const newCard = {
+                id: Date.now(),
+                title: title,
+                status: status,
+                createdAt: now,       // NOVO: Data de criação
+                lastMovedAt: now      // NOVO: Data da primeira movimentação (que é a criação)
+            };
+            
+            dataStore.kanban.push(newCard);
+            await saveData();
+            renderKanban();
+        }
+
+        // 4. Exclui um card
+        window.kanbanDeleteCard = async function(id) {
+            if (confirm('Tem a certeza que quer apagar este card?')) {
+                dataStore.kanban = dataStore.kanban.filter(card => card.id !== id);
+                await saveData();
+                renderKanban();
+            }
+        }
+
+
+        // --- Resto das Funções do Dashboard (Inalteradas, mas mantidas para o contexto) ---
 
         // --- Navegação ---
         const navLinks = document.querySelectorAll('.nav-link');

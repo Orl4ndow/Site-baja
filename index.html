@@ -94,6 +94,12 @@
         .card-text {
             flex-grow: 1;
         }
+        
+        /* CORREÇÕES ESSENCIAIS PARA MOBILE ABAIXO */
+        body { 
+            /* A chave: Impede que o conteúdo lateral fixo crie uma rolagem horizontal. */
+            overflow-x: hidden; 
+        }
 
         /* Estilos para FIXAR A BARRA DE NAVEGAÇÃO em telas maiores */
         @media (min-width: 768px) {
@@ -102,6 +108,15 @@
                 height: 100vh;
                 top: 0;
                 left: 0;
+            }
+        }
+        /* Apenas em mobile, o <body> é flex, mas a main não precisa da margem lateral (já que a nav fica oculta) */
+        @media (max-width: 767px) {
+            .flex { 
+                display: block; /* Desativa o flex do body em mobile para evitar layout stretch */
+            }
+            .md\:ml-64 {
+                margin-left: 0 !important; /* Remove a margem quebra-layout do main */
             }
         }
     </style>

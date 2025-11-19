@@ -247,49 +247,45 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // --- Resto das Funções do Dashboard (Inalteradas, mas mantidas para o contexto) ---
 
-        // --- Navegação ---
+      // --- Navegação (CORRIGIDA PARA BARRA SUPERIOR) ---
         const navLinks = document.querySelectorAll('.nav-link');
         const pages = document.querySelectorAll('.page');
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        const mainNav = document.getElementById('main-nav');
-        const mobileNavOverlay = document.getElementById('mobile-nav-overlay');
-        const mobilePageTitle = document.getElementById('mobile-page-title');
+        
+        // Removemos as variáveis do menu mobile antigo que causavam o erro
 
         function navigateTo(hash) {
             const targetHash = hash || '#dashboard';
-            const activeLink = document.querySelector(`.nav-link[href="${targetHash}"]`);
             
-            navLinks.forEach(link => link.classList.remove('active'));
-            if(activeLink) {
-                activeLink.classList.add('active');
-                mobilePageTitle.textContent = activeLink.textContent.trim();
-            }
+            // Atualiza visual dos links
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                // Verifica se o href do link é igual ao hash atual
+                if (link.getAttribute('href') === targetHash) {
+                    link.classList.add('active');
+                }
+            });
 
+            // Troca a página visível
             pages.forEach(page => page.classList.toggle('active', '#' + page.id === targetHash));
             
-            // Fecha o menu mobile ao navegar
-            mainNav.classList.remove('open');
-            mobileNavOverlay.classList.remove('open');
+            // Rola a página para o topo
+            window.scrollTo(0, 0);
         }
 
-        // **CÓDIGO CORRIGIDO**
         navLinks.forEach(link => {
             link.addEventListener('click', (e) => {
                 const href = e.currentTarget.getAttribute('href');
 
-                // Se o link NÃO começa com '#', é um link externo.
-                // Deixa o navegador fazer a ação padrão (abrir o link) e para a execução.
+                // Se for link externo, deixa abrir
                 if (href && !href.startsWith('#')) {
                     return; 
                 }
                 
-                // Se o código chegou aqui, é um link interno (começa com '#').
-                // Então, previne a ação padrão e usa a navegação do dashboard.
                 e.preventDefault();
 
                 if (e.currentTarget.id === 'config-link') {
                     const password = prompt("Insira a senha:");
-                    if (password === "123456789") { // Sua senha
+                    if (password === "123456789") { 
                         window.location.hash = href;
                     } else {
                         alert("Senha incorreta!");
@@ -300,14 +296,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         });
         
-        mobileMenuButton.addEventListener('click', () => {
-            mainNav.classList.add('open');
-            mobileNavOverlay.classList.add('open');
-        });
-        mobileNavOverlay.addEventListener('click', () => {
-            mainNav.classList.remove('open');
-            mobileNavOverlay.classList.remove('open');
-        });
+        // Removemos os EventListeners do mobileMenuButton pois ele não existe mais
+        
+        window.addEventListener('hashchange', () => navigateTo(window.location.hash));
 
         window.addEventListener('hashchange', () => navigateTo(window.location.hash));
         

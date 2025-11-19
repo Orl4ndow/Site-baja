@@ -26,12 +26,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             reunioes: [{id: 1, data: "2025-07-20", participantes: "Toda a equipe", pauta: "Reunião de Kick-off do projeto."}],
             links: [{id: 1, url: "http://www.saebrasil.org.br", descricao: "Site Oficial SAE Brasil"}],
             avisos: [{id: 1, texto: "Bem-vindos ao novo painel de gestão!", createdAt: new Date().toISOString()}],
-            // NOVO: Dados iniciais para o Kanban (incluindo datas)
             kanban: [
                 { id: Date.now(), title: "Definir Layout do Dashboard", status: "done", createdAt: new Date().toISOString(), lastMovedAt: new Date().toISOString() },
                 { id: Date.now() + 1, title: "Integrar Firebase Firestore", status: "doing", createdAt: new Date().toISOString(), lastMovedAt: new Date().toISOString() },
                 { id: Date.now() + 2, title: "Criar novo card Kanban", status: "todo", createdAt: new Date().toISOString(), lastMovedAt: new Date().toISOString() }
-            ]
+            ],
+            config: {
+                competitionDate: "2025-12-31",
+                budgetTotal: 2000,
+                budgetSpent: 450
+            },
+            estoqueCritico: "Cabos 10AWG, Fusíveis 40A"
         };
 
         let dataStore = {};
@@ -95,6 +100,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderReunioesEdit();
             renderLinksEdit();
             renderAvisosEdit();
+	    renderConfigEdit();
         }
 
         // --- FUNÇÕES KANBAN ---
@@ -300,8 +306,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         window.addEventListener('hashchange', () => navigateTo(window.location.hash));
 
-        window.addEventListener('hashchange', () => navigateTo(window.location.hash));
-        
         window.deleteItem = async (sectionName, id) => {
             if (confirm('Tem a certeza que quer apagar este item?')) {
                 dataStore[sectionName] = dataStore[sectionName].filter(item => item.id !== id);
@@ -376,13 +380,62 @@ document.addEventListener('DOMContentLoaded', async () => {
             await saveData(); renderLinksEdit(); e.target.reset();
         });
         
+// Lógica da aba Edição -> Configurações Gerais
+document.getElementById('salvar-config-geral').addEventListener('click', async () => {
+    dataStore.config = {
+        competitionDate: document.getElementById('config-date').value,
+        budgetTotal: document.getElementById('config-budget-total').value,
+        budgetSpent: document.getElementById('config-budget-spent').value
+    };
+    dataStore.estoqueCritico = document.getElementById('config-estoque').value;
+
+    await saveData();
+    alert("Painel atualizado!");
+    renderDashboard();
+});
+
+// Função auxiliar para preencher os inputs ao carregar
+function renderConfigEdit() {
+    if(dataStore.config) {
+        document.getElementById('config-date').value = dataStore.config.competitionDate || '';
+        document.getElementById('config-budget-total').value = dataStore.config.budgetTotal || '';
+        document.getElementById('config-budget-spent').value = dataStore.config.budgetSpent || '';
+    }
+    document.getElementById('config-estoque').value = dataStore.estoqueCritico || '';
+}
+
         // Avisos
-        function renderAvisosView() {
-            const sortedAvisos = [...(dataStore.avisos || [])].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
-            const avisosHTML = sortedAvisos.map(i => `<div class="border-b pb-2 mb-2"><p>${i.texto}</p><span class="text-xs text-gray-400">${new Date(i.createdAt).toLocaleString('pt-BR')}</span></div>`).join('');
-            document.getElementById('avisos-dashboard-content').innerHTML = avisosHTML || '<p class="text-gray-400">Nenhum aviso publicado.</p>';
-            document.getElementById('avisos-list-view').innerHTML = avisosHTML || '<p class="text-gray-400">Nenhum aviso publicado.</p>';
-        }
+       function renderAvisosView() {
+    // 1. Organiza do mais recente para o mais antigo
+    const sortedAvisos = [...(dataStore.avisos || [])].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
+    // 2. Cria o HTML para a lista COMPLETA (Página de Avisos - Mantém todos)
+    const fullHTML = sortedAvisos.map(i => 
+        `<div class="border-b pb-2 mb-2">
+            <p>${i.texto}</p>
+            <span class="text-xs text-gray-400">${new Date(i.createdAt).toLocaleString('pt-BR')}</span>
+        </div>`
+    ).join('');
+
+    // 3. Cria o HTML apenas para o PRIMEIRO (Dashboard - Só 1)
+    const dashboardHTML = sortedAvisos.slice(0, 1).map(i => 
+        `<div>
+            <p class="text-gray-800 font-medium">${i.texto}</p> 
+            <span class="text-xs text-gray-500 mt-1 block">
+                <i data-lucide="clock" class="w-2 h-2 inline mr-1"></i>
+                ${new Date(i.createdAt).toLocaleString('pt-BR')}
+            </span>
+        </div>`
+    ).join('');
+
+    // 4. Atualiza a tela
+    document.getElementById('avisos-list-view').innerHTML = fullHTML || '<p class="text-gray-400">Nenhum aviso publicado.</p>';
+    
+    document.getElementById('avisos-dashboard-content').innerHTML = dashboardHTML || '<p class="text-gray-400 text-sm italic">Nenhum aviso recente.</p>';
+    
+    // Atualiza os ícones (caso tenha usado o ícone de relógio novo)
+    lucide.createIcons();
+}
          function renderAvisosEdit() {
             const sortedAvisos = [...(dataStore.avisos || [])].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
             document.getElementById('avisos-list-edit').innerHTML = sortedAvisos.map(i => `<div class="border-b pb-2 mb-2 flex flex-col sm:flex-row justify-between items-start sm:items-center"><p class="mb-1 sm:mb-0">${i.texto}</p><div><span class="text-xs text-gray-400">${new Date(i.createdAt).toLocaleString('pt-BR')}</span> <button onclick="deleteItem('avisos', ${i.id})" class="text-red-500 text-xs ml-2 font-semibold">Apagar</button></div></div>`).join('');
@@ -392,15 +445,143 @@ document.addEventListener('DOMContentLoaded', async () => {
             dataStore.avisos.push({ id: Date.now(), texto: document.getElementById('aviso-texto-edit').value, createdAt: new Date().toISOString() });
             await saveData(); renderAvisosEdit(); e.target.reset(); renderAvisosView();
         });
+// --- NOVAS FUNÇÕES DO DASHBOARD ---
 
+// A. Gráfico Chart.js
+function renderChart() {
+    const ctx = document.getElementById('kanbanChart');
+    if(!ctx) return;
+    
+    const todo = dataStore.kanban.filter(c => c.status === 'todo').length;
+    const doing = dataStore.kanban.filter(c => c.status === 'doing').length;
+    const done = dataStore.kanban.filter(c => c.status === 'done').length;
+
+    if (window.kanbanChartInstance) {
+        window.kanbanChartInstance.destroy();
+    }
+
+    window.kanbanChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['A Fazer', 'Em Progresso', 'Concluído'],
+            datasets: [{
+                data: [todo, doing, done],
+                backgroundColor: ['#f97316', '#3b82f6', '#10b981'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'right' } },
+            cutout: '70%'
+        }
+    });
+}
+
+// B. Contagem Regressiva
+function renderCountdown() {
+    const targetDate = new Date(dataStore.config.competitionDate);
+    const now = new Date();
+    const diff = targetDate - now;
+
+    const timerElement = document.getElementById('countdown-timer');
+    if (diff <= 0) {
+        timerElement.textContent = "CHEGOU O DIA!";
+        timerElement.classList.add('text-red-400');
+    } else {
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        timerElement.textContent = `${days}d ${hours}h`;
+        timerElement.classList.remove('text-red-400');
+    }
+}
+
+// C. Widget Financeiro
+function renderBudget() {
+    const total = parseFloat(dataStore.config.budgetTotal) || 0;
+    const spent = parseFloat(dataStore.config.budgetSpent) || 0;
+    const percent = total > 0 ? (spent / total) * 100 : 0;
+
+    document.getElementById('money-total').textContent = `R$ ${total}`;
+    document.getElementById('money-spent').textContent = `R$ ${spent}`;
+    
+    const bar = document.getElementById('budget-bar');
+    bar.style.width = `${Math.min(percent, 100)}%`;
+    
+    // Muda cor da barra se passar de 90%
+    if(percent > 90) { bar.classList.remove('bg-green-500'); bar.classList.add('bg-red-500'); }
+    else { bar.classList.add('bg-green-500'); bar.classList.remove('bg-red-500'); }
+
+    document.getElementById('budget-message').textContent = `${(100 - percent).toFixed(1)}% disponível`;
+}
+
+// D. Carga de Trabalho (Do Cronograma)
+function renderTeamWorkload() {
+    const counts = {};
+    // Conta tarefas por responsável no Cronograma
+    (dataStore.cronograma || []).forEach(task => {
+        const name = task.responsavel || 'Não atribuído';
+        counts[name] = (counts[name] || 0) + 1;
+    });
+
+    const list = document.getElementById('team-load-list');
+    if(!list) return;
+    
+    if (Object.keys(counts).length === 0) {
+        list.innerHTML = '<li class="text-gray-400 text-sm">Nenhuma tarefa atribuída no cronograma.</li>';
+        return;
+    }
+
+    list.innerHTML = Object.entries(counts)
+        .sort((a, b) => b[1] - a[1]) // Ordena por quem tem mais tarefas
+        .map(([name, count]) => `
+        <li class="flex justify-between items-center p-2 bg-gray-50 rounded">
+            <span class="font-medium text-gray-700 text-sm">${name}</span>
+            <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2 py-1 rounded-full">${count} tarefas</span>
+        </li>
+    `).join('');
+}
+
+// E. Estoque Crítico
+function renderStockList() {
+    const items = (dataStore.estoqueCritico || "").split(',').filter(i => i.trim() !== "");
+    const container = document.getElementById('dashboard-estoque');
+    if (items.length === 0) {
+        container.innerHTML = '<p class="text-gray-400 text-sm">Nenhum item crítico listado.</p>';
+    } else {
+        container.innerHTML = items.map(item => 
+            `<div class="flex items-center text-red-600 bg-red-50 p-2 rounded mb-1 border border-red-100 text-sm">
+                <i data-lucide="alert-circle" class="w-4 h-4 mr-2"></i> ${item}
+             </div>`
+        ).join('');
+        lucide.createIcons();
+    }
+}
         // Dashboard
         function renderDashboard() {
-            document.getElementById('dashboard-prazos').innerHTML = (dataStore.cronograma || []).filter(t=>t.fim && new Date(t.fim) >= new Date()).sort((a,b)=>new Date(a.fim) - new Date(b.fim)).slice(0,3).map(t=>`<p>${t.taskId}: <span class="font-semibold">${new Date(t.fim+'T00:00:00').toLocaleDateString('pt-BR')}</span></p>`).join('') || '<p class="text-gray-400">Nenhum prazo futuro.</p>';
-            document.getElementById('dashboard-riscos').innerHTML = (dataStore.riscos || []).filter(r=>r.probabilidade === 'Alta' && r.impacto === 'Alto').slice(0,3).map(r=>`<p>${r.descricao}</p>`).join('') || '<p class="text-gray-400">Nenhum risco crítico.</p>';
-            if(dataStore.reunioes && dataStore.reunioes.length > 0) document.getElementById('dashboard-reuniao').innerHTML = `<p>Data: <span class="font-semibold">${new Date([...dataStore.reunioes].sort((a,b)=>new Date(b.data)-new Date(a.data))[0].data+'T00:00:00').toLocaleDateString('pt-BR')}</span></p><p class="truncate">${[...dataStore.reunioes].sort((a,b)=>new Date(b.data)-new Date(a.data))[0].pauta}</p>`;
-            else document.getElementById('dashboard-reuniao').innerHTML = '<p class="text-gray-400">Nenhuma reunião registada.</p>';
-            renderAvisosView();
-        }
+    renderChart();
+    renderCountdown();
+    renderBudget();
+    renderTeamWorkload();
+    renderStockList();
+    
+    // (Lógica antiga mantida para Prazos e Riscos)
+    document.getElementById('dashboard-prazos').innerHTML = (dataStore.cronograma || [])
+        .filter(t=>t.fim && new Date(t.fim) >= new Date())
+        .sort((a,b)=>new Date(a.fim) - new Date(b.fim))
+        .slice(0,3)
+        .map(t=>`<div class="flex justify-between py-1 border-b last:border-0"><span>${t.taskId}</span> <span class="font-semibold">${new Date(t.fim+'T00:00:00').toLocaleDateString('pt-BR')}</span></div>`)
+        .join('') || '<p class="text-gray-400">Nenhum prazo.</p>';
+
+    document.getElementById('dashboard-riscos').innerHTML = (dataStore.riscos || [])
+        .filter(r=>r.probabilidade === 'Alta' && r.impacto === 'Alto')
+        .slice(0,3)
+        .map(r=>`<div class="text-red-600 py-1">• ${r.descricao}</div>`)
+        .join('') || '<p class="text-gray-400">Nenhum risco crítico.</p>';
+        
+    renderAvisosView();
+}
         
         // --- Inicialização ---
         lucide.createIcons();

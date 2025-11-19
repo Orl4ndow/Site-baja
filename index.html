@@ -101,27 +101,9 @@
             overflow-x: hidden; 
         }
 
-        /* Estilos para FIXAR A BARRA DE NAVEGAÇÃO em telas maiores */
-        @media (min-width: 768px) {
-            #main-nav {
-                position: fixed;
-                height: 100vh;
-                top: 0;
-                left: 0;
-            }
-        }
-        /* Apenas em mobile, o <body> é flex, mas a main não precisa da margem lateral (já que a nav fica oculta) */
-        @media (max-width: 767px) {
-            .flex { 
-                display: block; /* Desativa o flex do body em mobile para evitar layout stretch */
-            }
-            .md\:ml-64 {
-                margin-left: 0 !important; /* Remove a margem quebra-layout do main */
-            }
-        }
     </style>
 </head>
-<body class="flex bg-gray-100">
+<body class="flex flex-col bg-gray-100 h-screen overflow-hidden">
 
     <div id="loading-overlay" class="fixed inset-0 bg-white/90 backdrop-blur-sm flex justify-center items-center z-50">
         <div class="text-center">
@@ -132,39 +114,39 @@
 
     <div id="mobile-nav-overlay"></div>
 
-    <nav id="main-nav" class="w-64 bg-white shadow-lg flex-col flex">
-        <div class="p-6 text-center border-b">
-            <h1 class="text-xl font-bold text-indigo-600">Quarter Mile BAJA Eletrônica UERJ</h1>
-            <p class="text-sm text-gray-500">Painel de Gestão</p> 
-	    
+    <nav id="main-nav" class="w-full bg-white shadow-md flex flex-row items-center justify-between px-4 h-16 fixed top-0 z-50">
+    
+    <div class="flex items-center flex-shrink-0 pr-4 border-r mr-4">
+        <div class="text-left">
+            <h1 class="text-lg font-bold text-indigo-600 leading-tight">Baja SAE</h1>
+            <p class="text-xs text-gray-500">Eletrônica</p>
         </div>
-        <ul class="flex-grow p-4 space-y-2 overflow-y-auto">
-            <li><a href="https://drive.google.com/drive/u/3/folders/1bMHMuoTwH96tJvcNmbKg7t-BqnMxkMVP" target="_blank" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-100"><i data-lucide="folder-heart" class="w-5 h-5 mr-3"></i>Projetos Prontos</a></li>
-	    <li><a href="#dashboard" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-100 active"><i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>Dashboard</a></li>
-            <li><a href="#kanban" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-100"><i data-lucide="layout-grid" class="w-5 h-5 mr-3"></i>Kanban</a></li>
-            <li><a href="#escopo" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-100"><i data-lucide="file-text" class="w-5 h-5 mr-3"></i>Escopo</a></li>
-            <li><a href="#eap" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-100"><i data-lucide="network" class="w-5 h-5 mr-3"></i>EAP</a></li>
-            <li><a href="#cronograma" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-100"><i data-lucide="calendar-days" class="w-5 h-5 mr-3"></i>Cronograma</a></li>
-            <li><a href="#riscos" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-100"><i data-lucide="shield-alert" class="w-5 h-5 mr-3"></i>Riscos</a></li>
-            <li><a href="#reunioes" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-100"><i data-lucide="users" class="w-5 h-5 mr-3"></i>Reuniões</a></li>
-            <li><a href="#links" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-100"><i data-lucide="link" class="w-5 h-5 mr-3"></i>Links Úteis</a></li>
-            <li><a href="#avisos" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-100"><i data-lucide="megaphone" class="w-5 h-5 mr-3"></i>Avisos</a></li>
-            <li><a href="https://drive.google.com/drive/folders/1sTkMYff2q_Vl-8kONZ3f0_bEC3pyS9Tx?usp=drive_link" target="_blank" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-100"><i data-lucide="folder-kanban" class="w-5 h-5 mr-3"></i>Inventário</a></li>
-        </ul>
-        <div class="p-4 border-t">
-            <a href="#edicao" id="config-link" class="nav-link w-full flex items-center justify-center text-sm p-3 rounded bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-semibold"><i data-lucide="settings" class="w-5 h-5 mr-2"></i></a>
-        </div>
-    </nav>
+    </div>
 
-    <main class="flex-1 flex flex-col h-screen md:ml-64">
-        <header id="mobile-header" class="md:hidden sticky top-0 bg-white/80 backdrop-blur-sm shadow-sm p-4 z-20 flex justify-between items-center">
-            <button id="mobile-menu-button" class="p-2">
-                <i data-lucide="menu" class="w-6 h-6"></i>
-            </button>
-            <h2 id="mobile-page-title" class="text-lg font-bold text-indigo-600">Dashboard</h2>
-        </header>
+    <ul class="flex flex-row items-center space-x-2 overflow-x-auto h-full no-scrollbar flex-grow">
+        <li><a href="https://drive.google.com/drive/u/3/folders/1bMHMuoTwH96tJvcNmbKg7t-BqnMxkMVP" target="_blank" class="nav-link flex items-center px-3 py-2 rounded-lg hover:bg-gray-100 text-sm whitespace-nowrap"><i data-lucide="folder-heart" class="w-4 h-4 mr-2"></i>Projetos</a></li>
+        <li><a href="#dashboard" class="nav-link flex items-center px-3 py-2 rounded-lg hover:bg-gray-100 text-sm whitespace-nowrap active"><i data-lucide="layout-dashboard" class="w-4 h-4 mr-2"></i>Dashboard</a></li>
+        <li><a href="#kanban" class="nav-link flex items-center px-3 py-2 rounded-lg hover:bg-gray-100 text-sm whitespace-nowrap"><i data-lucide="layout-grid" class="w-4 h-4 mr-2"></i>Kanban</a></li>
+        <li><a href="#escopo" class="nav-link flex items-center px-3 py-2 rounded-lg hover:bg-gray-100 text-sm whitespace-nowrap"><i data-lucide="file-text" class="w-4 h-4 mr-2"></i>Escopo</a></li>
+        <li><a href="#eap" class="nav-link flex items-center px-3 py-2 rounded-lg hover:bg-gray-100 text-sm whitespace-nowrap"><i data-lucide="network" class="w-4 h-4 mr-2"></i>EAP</a></li>
+        <li><a href="#cronograma" class="nav-link flex items-center px-3 py-2 rounded-lg hover:bg-gray-100 text-sm whitespace-nowrap"><i data-lucide="calendar-days" class="w-4 h-4 mr-2"></i>Crono</a></li>
+        <li><a href="#riscos" class="nav-link flex items-center px-3 py-2 rounded-lg hover:bg-gray-100 text-sm whitespace-nowrap"><i data-lucide="shield-alert" class="w-4 h-4 mr-2"></i>Riscos</a></li>
+        <li><a href="#reunioes" class="nav-link flex items-center px-3 py-2 rounded-lg hover:bg-gray-100 text-sm whitespace-nowrap"><i data-lucide="users" class="w-4 h-4 mr-2"></i>Reuniões</a></li>
+        <li><a href="#links" class="nav-link flex items-center px-3 py-2 rounded-lg hover:bg-gray-100 text-sm whitespace-nowrap"><i data-lucide="link" class="w-4 h-4 mr-2"></i>Links</a></li>
+        <li><a href="#avisos" class="nav-link flex items-center px-3 py-2 rounded-lg hover:bg-gray-100 text-sm whitespace-nowrap"><i data-lucide="megaphone" class="w-4 h-4 mr-2"></i>Avisos</a></li>
+        <li><a href="https://drive.google.com/drive/folders/1sTkMYff2q_Vl-8kONZ3f0_bEC3pyS9Tx?usp=drive_link" target="_blank" class="nav-link flex items-center px-3 py-2 rounded-lg hover:bg-gray-100 text-sm whitespace-nowrap"><i data-lucide="folder-kanban" class="w-4 h-4 mr-2"></i>Inventário</a></li>
+    </ul>
 
-        <div class="flex-1 p-4 md:p-8 overflow-y-auto">
+    <div class="pl-4 border-l ml-2 flex-shrink-0">
+        <a href="#edicao" id="config-link" class="nav-link flex items-center justify-center p-2 rounded-full bg-indigo-100 hover:bg-indigo-200 text-indigo-800">
+            <i data-lucide="settings" class="w-5 h-5"></i>
+        </a>
+    </div>
+</nav>
+
+    <main class="flex-1 flex flex-col w-full pt-16 h-screen overflow-hidden">
+        <div class="flex-1 p-4 md:p-8 overflow-y-auto h-full">
+
             <div id="dashboard" class="page active"><h2 class="text-3xl font-bold mb-6 text-gray-800">Dashboard</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-semibold mb-2">Próximos Prazos</h3><div class="overflow-x-auto"><div id="dashboard-prazos" class="text-gray-700 space-y-1 whitespace-pre"></div></div></div><div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-semibold mb-2">Riscos Críticos</h3><div class="overflow-x-auto"><div id="dashboard-riscos" class="text-gray-700 space-y-1 whitespace-pre"></div></div></div><div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-semibold mb-2">Última Reunião</h3><div class="overflow-x-auto"><div id="dashboard-reuniao" class="text-gray-700 space-y-1 whitespace-pre"></div></div></div></div><div class="mt-8 bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-semibold mb-2 flex items-center"><i data-lucide="megaphone" class="w-5 h-5 mr-2"></i>Quadro de Avisos</h3><div class="overflow-x-auto"><div id="avisos-dashboard-content" class="text-gray-700 space-y-2 whitespace-pre"></div></div></div></div>
 
             <div id="kanban" class="page">
